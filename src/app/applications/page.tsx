@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { Plus } from 'lucide-react';
-import { ApplicationsTable } from '@/components/applications/ApplicationsTable';
+import { ApplicationsTable } from '@/components/ApplicationsTable';
 import { Application, CvVersion } from '@/types/database';
 
 export default async function ApplicationsPage() {

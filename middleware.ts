@@ -41,7 +41,7 @@ export async function middleware(request: NextRequest) {
   if (!user && pathname.startsWith('/analytics')) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
-  if (!user && pathname.startsWith('/insights')) {
+  if (!user && pathname.startsWith('/ai-insights')) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
   if (!user && pathname.startsWith('/cv-versions')) {
