@@ -12,7 +12,7 @@ import {
   SECTORS,
   CvVersion,
 } from '@/types/database';
-import { StatusBadge } from './StatusBadge';
+import { StatusBadge } from './applications/StatusBadge';
 import { formatDate, daysUntilDeadline } from '@/lib/utils';
 
 type SortKey = 'company_name' | 'role_title' | 'application_date' | 'deadline' | 'status';

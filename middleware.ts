@@ -31,26 +31,18 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  // Redirect unauthenticated users trying to access dashboard
-  if (!user && pathname.startsWith('/dashboard')) {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-  if (!user && pathname.startsWith('/applications')) {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-  if (!user && pathname.startsWith('/analytics')) {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-  if (!user && pathname.startsWith('/insights')) {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-  if (!user && pathname.startsWith('/cv-versions')) {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-  if (!user && pathname.startsWith('/settings')) {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
+  const protectedPrefixes = [
+    '/dashboard',
+    '/applications',
+    '/analytics',
+    '/ai-insights',
+    '/cv-versions',
+    '/settings',
+  ];
 
+  if (!user && protectedPrefixes.some((prefix) => pathname.startsWith(prefix))) {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
   // Redirect authenticated users away from auth pages
   if (user && (pathname === '/login' || pathname === '/signup')) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
