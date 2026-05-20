@@ -53,7 +53,11 @@ export function ProfileForm({ initialData, userEmail }: ProfileFormProps) {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      setError('Your session expired. Please sign in again.');
+      setLoading(false);
+      return;
+    }
 
     const payload = {
       user_id: user.id,

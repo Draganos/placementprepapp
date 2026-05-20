@@ -12,7 +12,7 @@ import {
   SECTORS,
   CvVersion,
 } from '@/types/database';
-import { StatusBadge } from './StatusBadge';
+import { StatusBadge } from './applications/StatusBadge';
 import { formatDate, daysUntilDeadline } from '@/lib/utils';
 
 type SortKey = 'company_name' | 'role_title' | 'application_date' | 'deadline' | 'status';
@@ -32,6 +32,7 @@ export function ApplicationsTable({ applications, cvVersions }: ApplicationsTabl
   const [sortKey, setSortKey] = useState<SortKey>('application_date');
   const [sortAsc, setSortAsc] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const filtered = applications
     .filter((a) => {
@@ -55,7 +56,30 @@ export function ApplicationsTable({ applications, cvVersions }: ApplicationsTabl
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this application? This cannot be undone.')) return;
     setDeleting(id);
-    await supabase.from('applications').delete().eq('id', id);
+    setError(null);
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      setError('Your session expired. Please sign in again.');
+      setDeleting(null);
+      return;
+    }
+
+    const { error: deleteError } = await supabase
+      .from('applications')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', user.id);
+
+    if (deleteError) {
+      setError(deleteError.message);
+      setDeleting(null);
+      return;
+    }
+
     router.refresh();
     setDeleting(null);
   };
@@ -114,6 +138,12 @@ export function ApplicationsTable({ applications, cvVersions }: ApplicationsTabl
           {filtered.length} result{filtered.length !== 1 ? 's' : ''}
         </span>
       </div>
+
+      {error && (
+        <div className="mx-4 mt-4 text-xs text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">
+          {error}
+        </div>
+      )}
 
       {/* Table */}
       {filtered.length === 0 ? (

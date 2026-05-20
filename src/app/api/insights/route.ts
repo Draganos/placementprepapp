@@ -7,6 +7,10 @@ import { Application } from '@/types/database';
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function POST() {
+  if (!process.env.OPENAI_API_KEY) {
+    return NextResponse.json({ error: 'OPENAI_API_KEY is not configured.' }, { status: 500 });
+  }
+
   const supabase = createClient();
 
   const {
@@ -18,10 +22,18 @@ export async function POST() {
   }
 
   // Fetch applications + profile
-  const [{ data: applications }, { data: profile }] = await Promise.all([
+  const [{ data: applications, error: applicationsError }, { data: profile, error: profileError }] = await Promise.all([
     supabase.from('applications').select('*').eq('user_id', user.id),
     supabase.from('users_profile').select('*').eq('user_id', user.id).single(),
   ]);
+
+  if (applicationsError) {
+    return NextResponse.json({ error: applicationsError.message }, { status: 500 });
+  }
+
+  if (profileError && profileError.code !== 'PGRST116') {
+    return NextResponse.json({ error: profileError.message }, { status: 500 });
+  }
 
   const apps = (applications as Application[]) ?? [];
 

@@ -12,12 +12,20 @@ export default async function InsightsPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
-  const { data: insights } = await supabase
+  const { data: insights, error: insightsError } = await supabase
     .from('ai_insights')
     .select('*')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .limit(5);
+
+  if (insightsError) {
+    return (
+      <div className="p-8">
+        <p className="text-sm text-red-600">Failed to load insights: {insightsError.message}</p>
+      </div>
+    );
+  }
 
   const { count: appCount } = await supabase
     .from('applications')
