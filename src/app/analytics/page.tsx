@@ -13,10 +13,18 @@ export default async function AnalyticsPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
-  const { data: applications } = await supabase
+  const { data: applications, error: applicationsError } = await supabase
     .from('applications')
     .select('*')
     .eq('user_id', user.id);
+
+  if (applicationsError) {
+    return (
+      <div className="p-8">
+        <p className="text-sm text-red-600">Failed to load analytics: {applicationsError.message}</p>
+      </div>
+    );
+  }
 
   const apps = (applications as Application[]) ?? [];
   const stats = computeAnalytics(apps);

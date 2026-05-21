@@ -22,7 +22,11 @@ export function CreateCvVersionForm() {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      setError('Your session expired. Please sign in again.');
+      setLoading(false);
+      return;
+    }
 
     const { error: insertError } = await supabase.from('cv_versions').insert({
       user_id: user.id,
