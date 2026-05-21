@@ -20,4 +20,11 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.redirect(new URL(safeNext, request.url));
+
+  if (code) {
+    const supabase = createClient();
+    await supabase.auth.exchangeCodeForSession(code);
+  }
+
+  return NextResponse.redirect(new URL(next, request.url));
 }
