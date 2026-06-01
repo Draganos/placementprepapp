@@ -1,4 +1,4 @@
-import { createServerClient } from '@supabase/ssr';
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest) {
@@ -12,7 +12,7 @@ export async function middleware(request: NextRequest) {
         getAll() {
           return request.cookies.getAll();
         },
-        setAll(cookiesToSet) {
+        setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
@@ -31,26 +31,18 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  // Redirect unauthenticated users trying to access dashboard
-  if (!user && pathname.startsWith('/dashboard')) {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-  if (!user && pathname.startsWith('/applications')) {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-  if (!user && pathname.startsWith('/analytics')) {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-  if (!user && pathname.startsWith('/insights')) {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-  if (!user && pathname.startsWith('/cv-versions')) {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-  if (!user && pathname.startsWith('/settings')) {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
+  const protectedPrefixes = [
+    '/dashboard',
+    '/applications',
+    '/analytics',
+    '/ai-insights',
+    '/cv-versions',
+    '/settings',
+  ];
 
+  if (!user && protectedPrefixes.some((prefix) => pathname.startsWith(prefix))) {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
   // Redirect authenticated users away from auth pages
   if (user && (pathname === '/login' || pathname === '/signup')) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
@@ -61,6 +53,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };

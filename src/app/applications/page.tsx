@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { Plus } from 'lucide-react';
-import { ApplicationsTable } from '@/components/applications/ApplicationsTable';
+import { ApplicationsTable } from '@/components/ApplicationsTable';
 import { Application, CvVersion } from '@/types/database';
 
 export default async function ApplicationsPage() {
@@ -12,17 +12,29 @@ export default async function ApplicationsPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
-  const { data: applications } = await supabase
+  const { data: applications, error: applicationsError } = await supabase
     .from('applications')
     .select('*, cv_versions(version_name)')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
-  const { data: cvVersions } = await supabase
+  const { data: cvVersions, error: cvVersionsError } = await supabase
     .from('cv_versions')
     .select('*')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false });
+
+
+
+  if (applicationsError || cvVersionsError) {
+    return (
+      <div className="p-8 max-w-7xl mx-auto">
+        <p className="text-sm text-red-600">
+          Failed to load applications data: {applicationsError?.message ?? cvVersionsError?.message}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-6">

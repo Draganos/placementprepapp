@@ -25,8 +25,6 @@ export function ApplicationForm({
   applicationId,
 }: ApplicationFormProps) {
   const router = useRouter();
-  const supabase = createClient();
-
   const [form, setForm] = useState({
     company_name:    initialData?.company_name    ?? '',
     role_title:      initialData?.role_title      ?? '',
@@ -53,10 +51,16 @@ export function ApplicationForm({
     setLoading(true);
     setError(null);
 
+    const supabase = createClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) { router.push('/login'); return; }
+    if (!user) {
+      setError('Your session expired. Please sign in again.');
+      setLoading(false);
+      router.push('/login');
+      return;
+    }
 
     const payload = {
       ...form,
@@ -86,12 +90,18 @@ export function ApplicationForm({
       }
 
       // Log the initial event
-      await supabase.from('application_events').insert({
+      const { error: eventError } = await supabase.from('application_events').insert({
         application_id: data.id,
         user_id: user.id,
         event_type: form.status,
         event_date: form.application_date || new Date().toISOString().split('T')[0],
       });
+
+      if (eventError) {
+        setError(eventError.message);
+        setLoading(false);
+        return;
+      }
 
       router.push('/applications');
       router.refresh();
@@ -99,7 +109,8 @@ export function ApplicationForm({
       const { error: updateError } = await supabase
         .from('applications')
         .update(payload)
-        .eq('id', applicationId!);
+        .eq('id', applicationId!)
+        .eq('user_id', user.id);
 
       if (updateError) {
         setError(updateError.message);

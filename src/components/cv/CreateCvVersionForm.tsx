@@ -6,8 +6,6 @@ import { createClient } from '@/lib/supabase/client';
 
 export function CreateCvVersionForm() {
   const router = useRouter();
-  const supabase = createClient();
-
   const [name, setName]   = useState('');
   const [notes, setNotes] = useState('');
   const [url, setUrl]     = useState('');
@@ -19,10 +17,15 @@ export function CreateCvVersionForm() {
     setLoading(true);
     setError(null);
 
+    const supabase = createClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      setError('Your session expired. Please sign in again.');
+      setLoading(false);
+      return;
+    }
 
     const { error: insertError } = await supabase.from('cv_versions').insert({
       user_id: user.id,

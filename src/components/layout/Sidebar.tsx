@@ -19,7 +19,7 @@ const NAV_ITEMS = [
   { href: '/applications', label: 'Applications', icon: ClipboardList },
   { href: '/analytics',    label: 'Analytics',    icon: BarChart2 },
   { href: '/cv-versions',  label: 'CV Versions',  icon: FileText },
-  { href: '/insights',     label: 'AI Insights',  icon: Sparkles },
+  { href: '/ai-insights',  label: 'AI Insights',  icon: Sparkles },
 ];
 
 interface SidebarProps {
@@ -30,9 +30,8 @@ interface SidebarProps {
 export function Sidebar({ userEmail, userName }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const supabase = createClient();
-
   const handleLogout = async () => {
+    const supabase = createClient();
     await supabase.auth.signOut();
     router.push('/login');
     router.refresh();
@@ -80,7 +79,7 @@ export function Sidebar({ userEmail, userName }: SidebarProps) {
           href="/settings"
           className={cn(
             'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all',
-            pathname === '/settings'
+            pathname.startsWith('/settings')
               ? 'bg-blue-500/20 text-blue-300'
               : 'text-white/50 hover:text-white hover:bg-white/5'
           )}

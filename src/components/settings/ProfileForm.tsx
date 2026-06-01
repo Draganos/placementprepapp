@@ -15,8 +15,6 @@ const GRAD_YEARS = [CURRENT_YEAR, CURRENT_YEAR + 1, CURRENT_YEAR + 2, CURRENT_YE
 
 export function ProfileForm({ initialData, userEmail }: ProfileFormProps) {
   const router = useRouter();
-  const supabase = createClient();
-
   const [form, setForm] = useState({
     full_name:       initialData?.full_name       ?? '',
     university:      initialData?.university      ?? '',
@@ -50,10 +48,15 @@ export function ProfileForm({ initialData, userEmail }: ProfileFormProps) {
     setError(null);
     setSuccess(false);
 
+    const supabase = createClient();
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      setError('Your session expired. Please sign in again.');
+      setLoading(false);
+      return;
+    }
 
     const payload = {
       user_id: user.id,
